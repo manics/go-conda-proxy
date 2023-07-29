@@ -1,0 +1,6 @@
+foo
+# Allowed packages
+    bar  
+  # Another comment
+baz
+

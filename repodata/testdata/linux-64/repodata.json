@@ -1,0 +1,25 @@
+{
+  "info": {
+    "subdir": "linux-64"
+  },
+  "packages": {},
+  "packages.conda": {
+    "d-2023.1.1-0.conda": {
+      "build": "0",
+      "build_number": 0,
+      "depends": [],
+      "name": "d",
+      "subdir": "linux-64",
+      "version": "2023.1.1"
+    },
+    "e-12.34.56-78.conda": {
+      "build": "78",
+      "build_number": 78,
+      "depends": [],
+      "name": "e",
+      "subdir": "linux-64",
+      "version": "12.34.56"
+    }
+  },
+  "repodata_version": 1
+}

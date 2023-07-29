@@ -1,0 +1,19 @@
+# Listen on this internface:port
+listen: 127.0.0.1:8080
+
+# Refresh repodata.json after 100 days
+max_age_minutes: 144000
+
+# Allow these channels and subdirs
+channels:
+  conda-forge:
+    subdirs:
+      - linux-64
+      - linux-aarch64
+      - osx-64
+      - osx-arm64
+      - win-64
+      - win-arm64
+      - noarch
+    # Allow these packages (all versions) in this channel
+    allowlist_file: jupyterlab.txt
