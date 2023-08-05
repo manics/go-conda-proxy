@@ -15,5 +15,7 @@ channels:
       - win-64
       - win-arm64
       - noarch
-    # Allow these packages (all versions) in this channel
-    allowlist_file: jupyterlab.txt
+    # Allow these package names (all versions) in this channel
+    # Comment out to allow all packages
+    # This contains all package names in conda-forge on 2023-08-05
+    allowlist_file: conda-forge-20230805.txt
