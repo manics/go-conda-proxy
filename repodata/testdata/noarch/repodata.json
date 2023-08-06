@@ -6,10 +6,7 @@
     "a-0.1.0-0.tar.bz2": {
       "build": "0",
       "build_number": 0,
-      "depends": [
-        "b 1.*",
-        "c >=2"
-      ],
+      "depends": ["b 1.*", "c >=2"],
       "name": "a",
       "subdir": "noarch",
       "version": "0.1.0"
@@ -17,11 +14,7 @@
     "a-0.2.0-abc_0.tar.bz2": {
       "build": "abc_0",
       "build_number": 0,
-      "depends": [
-        "b 1.*",
-        "c >=2",
-        "d"
-      ],
+      "depends": ["b 1.*", "c >=2", "d"],
       "name": "a",
       "subdir": "noarch",
       "version": "0.2.0"
@@ -29,9 +22,7 @@
     "b-1-10.tar.bz2": {
       "build": "10",
       "build_number": 10,
-      "depends": [
-        "c <=3"
-      ],
+      "depends": ["c <=3"],
       "name": "b",
       "subdir": "noarch",
       "version": "1"

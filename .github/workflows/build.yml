@@ -1,0 +1,51 @@
+name: Go
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  # packages: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.0
+
+      - uses: actions/setup-go@v4
+        # with:
+        #   go-version-file: ./go.mod
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          # Workaround problem with golangci-lint-action trying to overwrite cache
+          # https://github.com/golangci/golangci-lint-action/issues/135
+          skip-pkg-cache: true
+          version: v1.53.3
+
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        # with:
+        #   go-version-file: ./go.mod
+
+      - name: go build
+        run: make build
+
+      - name: go test
+        run: make test
