@@ -21,8 +21,8 @@ jobs:
       - uses: pre-commit/action@v3.0.0
 
       - uses: actions/setup-go@v4
-        # with:
-        #   go-version-file: ./go.mod
+        with:
+          go-version-file: ./go.mod
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -41,8 +41,8 @@ jobs:
 
       - name: Setup Go
         uses: actions/setup-go@v4
-        # with:
-        #   go-version-file: ./go.mod
+        with:
+          go-version-file: ./go.mod
 
       - name: go build
         run: make build
