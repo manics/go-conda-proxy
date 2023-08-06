@@ -1,5 +1,7 @@
 # Go Conda Proxy
 
+[![Go](https://github.com/manics/go-conda-proxy/actions/workflows/build.yml/badge.svg)](https://github.com/manics/go-conda-proxy/actions/workflows/build.yml)
+
 A Conda proxy written in Go.
 
 ## Build
