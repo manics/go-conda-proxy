@@ -59,10 +59,25 @@ func main() {
 	var filteredRepodata map[string]*repodata.Repodata = make(map[string]*repodata.Repodata)
 
 	for channel, channelCfg := range cfg.Channels {
+		dependencyMap := map[string]repodata.Set{}
+
 		log.Printf("channel:[%s] channelCfg:[%+v]", channel, channelCfg)
 		if channelCfg.AllowlistFile != "" {
 			allowedPackages = repodata.ParseListFromFile(channelCfg.AllowlistFile)
 			log.Printf("allowedPackages:[%d]", allowedPackages.Len())
+		}
+
+		if channelCfg.RecurseDependencies {
+			for _, subdir := range channelCfg.Subdirs {
+				file := repodata.GetDestinationFilename(cfg.OriginalRepodataDir, channel, subdir)
+				log.Printf("Updating dependency map from %s", file)
+				if data, err := repodata.LoadRepodata(file); err != nil {
+					log.Fatalf("Error loading repodata: %s", err)
+				} else {
+					repodata.UpdateDependencyMap(&dependencyMap, data)
+				}
+			}
+			allowedPackages = repodata.GetChannelPackageDependencies(dependencyMap, allowedPackages)
 		}
 
 		for _, subdir := range channelCfg.Subdirs {

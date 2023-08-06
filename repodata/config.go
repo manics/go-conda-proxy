@@ -7,8 +7,9 @@ import (
 )
 
 type condaChannelConfig struct {
-	Subdirs       []string `yaml:"subdirs"`
-	AllowlistFile string   `yaml:"allowlist_file"`
+	Subdirs             []string `yaml:"subdirs"`
+	AllowlistFile       string   `yaml:"allowlist_file"`
+	RecurseDependencies bool     `yaml:"recurse_dependencies"`
 }
 
 type CondaRepoConfig struct {

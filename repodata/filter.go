@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -37,13 +38,11 @@ func FilenameIsValid(filename string, expectedExt string, repodata *Repodata, re
 	return true
 }
 
-// ParseRepodata parses a Conda repodata JSON file, and filters it by allowedPackages
-func ParseRepodata(channel string, repodataFile string, allowedPackages *Set) (*Repodata, *Set, *Set, error) {
-	log.Println("Parsing", repodataFile)
+func LoadRepodata(repodataFile string) (*Repodata, error) {
 	jsonFile, err := os.Open(repodataFile)
 	if err != nil {
 		log.Printf("Error opening file: %s", err)
-		return nil, nil, nil, err
+		return nil, err
 	}
 
 	defer jsonFile.Close()
@@ -52,12 +51,23 @@ func ParseRepodata(channel string, repodataFile string, allowedPackages *Set) (*
 	byteValue, _ := io.ReadAll(jsonFile)
 	if err := json.Unmarshal(byteValue, &repodata); err != nil {
 		log.Printf("Error parsing JSON: %s", err)
+		return nil, err
+	}
+
+	return &repodata, nil
+}
+
+// ParseRepodata parses a Conda repodata JSON file, and filters it by allowedPackages
+func ParseRepodata(channel string, repodataFile string, allowedPackages *Set) (*Repodata, *Set, *Set, error) {
+	log.Println("Parsing", repodataFile)
+	repodata, err := LoadRepodata(repodataFile)
+	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	log.Printf("%s packages:[%d] packages.conda:[%d]", repodataFile, len(repodata.Packages), len(repodata.PackagesConda))
 
-	filtered := FilterRepodataByAllowed(&repodata, allowedPackages)
+	filtered := FilterRepodataByAllowed(repodata, allowedPackages)
 
 	fileNames := NewSet(nil)
 	packageNames := NewSet(nil)
@@ -135,4 +145,66 @@ func ParseListFromFile(allowedFile string) *Set {
 	}
 
 	return allowedPackages
+}
+
+func parseDependencyName(dependency string) string {
+	sep := regexp.MustCompile(`[ ><=]`)
+	parts := sep.Split(dependency, 2)
+	return parts[0]
+}
+
+// UpdateDependencyMap updates a map of package names to their dependencies (all versions combined)
+func UpdateDependencyMap(dependencyMap *map[string]Set, repodata *Repodata) {
+	for _, packages := range []map[string]RepodataRecord{repodata.Packages, repodata.PackagesConda} {
+		for _, v := range packages {
+			if _, ok := (*dependencyMap)[v.Name]; !ok {
+				(*dependencyMap)[v.Name] = *NewSet(nil)
+			}
+			for _, dep := range v.Depends {
+				m := (*dependencyMap)[v.Name]
+				m.Add(parseDependencyName(dep))
+			}
+		}
+	}
+}
+
+// GetChannelPackageDependencies recursively finds the names of all dependencies for a list
+// of packages, including the packages themselves
+func GetChannelPackageDependencies(dependencyMap map[string]Set, packageNames *Set) *Set {
+	allPackageNames := NewSet(nil)
+
+	done := NewSet(nil)
+	pending := NewSet(nil)
+
+	// Add all package names to pending
+	// While pending is not empty:
+	//   Pop a package name from pending
+	//   If package is not in done:
+	//     Find the package in repodata (all subdirs)
+	//     Add all dependencies to pending if not in done
+	//     Add package to done
+
+	for _, name := range *packageNames.Items() {
+		pending.Add(name)
+	}
+
+	for pending.Len() > 0 {
+		name, valid := pending.Pop()
+		if !valid {
+			break
+		}
+
+		if !done.Contains(name) {
+			allPackageNames.Add(name)
+			deps := dependencyMap[name]
+			for _, dep := range *deps.Items() {
+				allPackageNames.Add(dep)
+				if !done.Contains(dep) {
+					pending.Add(dep)
+				}
+			}
+			done.Add(name)
+		}
+	}
+	return allPackageNames
 }

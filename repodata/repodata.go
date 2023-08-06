@@ -25,6 +25,9 @@ type RepodataRecord struct {
 	Size   int    `json:"size"`
 	Md5    string `json:"md5"`
 
+	// Optional fields
+	Depends []string `json:"depends,omitempty"`
+
 	// Extra fields, keep so we can serialise back to JSON
 	Extra map[string]interface{} `json:"-"`
 }

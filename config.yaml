@@ -19,3 +19,4 @@ channels:
     # Comment out to allow all packages
     # This contains all package names in conda-forge on 2023-08-05
     allowlist_file: conda-forge-20230805.txt
+    recurse_dependencies: true
