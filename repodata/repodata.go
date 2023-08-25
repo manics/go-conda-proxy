@@ -5,8 +5,11 @@ package repodata
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"reflect"
 	"strings"
+
+	"github.com/DataDog/zstd"
 )
 
 // https://github.com/conda/schemas/blob/bd2b05d6a6314b39d9a8c9c9802280c3eb78e788/common-1.schema.json
@@ -108,6 +111,23 @@ func (t *RepodataRecord) UnmarshalJSON(b []byte) error {
 	}
 
 	*t = RepodataRecord(t2)
+
+	return nil
+}
+
+func ZstdCompress(fileSrc string, fileDst string) error {
+	data, err := os.ReadFile(fileSrc)
+	if err != nil {
+		return err
+	}
+
+	compressedBytes, err := zstd.Compress(nil, data)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(fileDst, compressedBytes, 0644); err != nil {
+		return err
+	}
 
 	return nil
 }

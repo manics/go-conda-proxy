@@ -69,7 +69,7 @@ func main() {
 
 		if channelCfg.RecurseDependencies {
 			for _, subdir := range channelCfg.Subdirs {
-				file := repodata.GetDestinationFilename(cfg.OriginalRepodataDir, channel, subdir)
+				file := repodata.GetDestinationFilename(cfg.OriginalRepodataDir, channel, subdir, ".json")
 				log.Printf("Updating dependency map from %s", file)
 				if data, err := repodata.LoadRepodata(file); err != nil {
 					log.Fatalf("Error loading repodata: %s", err)
@@ -81,7 +81,7 @@ func main() {
 		}
 
 		for _, subdir := range channelCfg.Subdirs {
-			file := repodata.GetDestinationFilename(cfg.OriginalRepodataDir, channel, subdir)
+			file := repodata.GetDestinationFilename(cfg.OriginalRepodataDir, channel, subdir, ".json")
 			filtered, fileNames, packageNames, err := repodata.ParseRepodata(channel, file, allowedPackages)
 			if err != nil {
 				log.Fatalf("Error parsing repodata: %s", err)
@@ -95,7 +95,7 @@ func main() {
 				allPackageNames.Add(k)
 			}
 
-			filteredFile := repodata.GetDestinationFilename(outputPrefix, channel, subdir)
+			filteredFile := repodata.GetDestinationFilename(outputPrefix, channel, subdir, ".json")
 			data, err := repodata.EncodeJSON(filtered, " ")
 			if err != nil {
 				log.Fatalf("Error encoding JSON: %s", err)
@@ -104,6 +104,10 @@ func main() {
 			err = repodata.WriteTempAndRename(bytes.NewReader(data), filteredFile)
 			if err != nil {
 				log.Fatalf("Error writing file: %s", err)
+			}
+
+			if err := repodata.ZstdCompress(filteredFile, filteredFile+".zst"); err != nil {
+				log.Fatalf("Error compressing file: %s", err)
 			}
 		}
 	}

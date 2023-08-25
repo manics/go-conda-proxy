@@ -58,14 +58,17 @@ func UpdateDownload(url string, destination string, maxAgeMinutes int) error {
 	return err
 }
 
-func GetDestinationFilename(parentdir string, channel string, subdir string) string {
-	return filepath.Join(parentdir, channel, subdir, "repodata.json")
+func GetDestinationFilename(parentdir string, channel string, subdir string, suffix string) string {
+	if suffix == "" {
+		suffix = ".json"
+	}
+	return filepath.Join(parentdir, channel, subdir, "repodata"+suffix)
 }
 
 func UpdateChannelRepodata(host string, parentdir string, channel string, subdirs []string, maxAgeMinutes int) error {
 	errs := []error{}
 	for _, subdir := range subdirs {
-		destination := GetDestinationFilename(parentdir, channel, subdir)
+		destination := GetDestinationFilename(parentdir, channel, subdir, ".json")
 		url := host + "/" + channel + "/" + subdir + "/repodata.json"
 		if err := UpdateDownload(url, destination, maxAgeMinutes); err != nil {
 			errs = append(errs, err)

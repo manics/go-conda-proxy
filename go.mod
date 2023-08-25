@@ -3,6 +3,7 @@ module github.com/manics/go-conda-proxy
 go 1.20
 
 require (
+	github.com/DataDog/zstd v1.5.5
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b
 	gopkg.in/yaml.v3 v3.0.1
