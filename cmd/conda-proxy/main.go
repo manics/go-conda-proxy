@@ -46,7 +46,12 @@ func (p *proxy) serveRepodata(wr http.ResponseWriter, req *http.Request, channel
 
 	// Ignore current_repodata.json, conda should fallback to repodata.json
 	// https://docs.conda.io/projects/conda-build/en/stable/concepts/generating-index.html#trimming-to-current-repodata
-	if filename != "repodata.json" {
+	var suffix string
+	if filename == "repodata.json" {
+		suffix = ".json"
+	} else if filename == "repodata.json.zst" {
+		suffix = ".json.zst"
+	} else {
 		msg := "Invalid path: " + req.URL.Path
 		http.Error(wr, msg, http.StatusNotFound)
 		log.Println(logPrefix, http.StatusNotFound, msg)
@@ -61,9 +66,18 @@ func (p *proxy) serveRepodata(wr http.ResponseWriter, req *http.Request, channel
 		return
 	}
 
-	localPath := repodata.GetDestinationFilename(p.Cfg.FilteredRepodataDir, channel, subdir)
+	localPath := repodata.GetDestinationFilename(p.Cfg.FilteredRepodataDir, channel, subdir, suffix)
 
-	wr.Header().Set("Content-Type", "application/json")
+	if strings.HasSuffix(filename, ".zst") {
+		wr.Header().Set("Content-Type", "application/zstd")
+	} else if strings.HasSuffix(filename, ".json") {
+		wr.Header().Set("Content-Type", "application/json")
+	} else {
+		msg := "Unexpected file extension: " + filename
+		http.Error(wr, msg, http.StatusUnsupportedMediaType)
+		log.Println(logPrefix, http.StatusUnsupportedMediaType, msg)
+		return
+	}
 	wr.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", p.Cfg.CacheControlMaxAgeMinutes*60))
 
 	http.ServeFile(wr, req, localPath)
@@ -73,7 +87,7 @@ func (p *proxy) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 	logPrefix := httpLogPrefix(req)
 	log.Println(logPrefix, req.Method, req.URL, req.UserAgent())
 
-	if req.Method != "GET" {
+	if req.Method != "GET" && req.Method != "HEAD" {
 		msg := "Invalid method: " + req.Method
 		http.Error(wr, msg, http.StatusBadRequest)
 		log.Println(logPrefix, http.StatusBadRequest, msg)
@@ -89,7 +103,8 @@ func (p *proxy) ServeHTTP(wr http.ResponseWriter, req *http.Request) {
 		log.Println(logPrefix, http.StatusNotFound, msg)
 	}
 
-	if len(pathParts) == 4 && strings.HasSuffix(pathParts[3], ".json") {
+	if len(pathParts) == 4 &&
+		(strings.HasSuffix(pathParts[3], ".json") || strings.HasSuffix(pathParts[3], ".json.zst")) {
 		p.serveRepodata(wr, req, pathParts[1], pathParts[2], pathParts[3])
 		return
 	}

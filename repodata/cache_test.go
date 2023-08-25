@@ -105,7 +105,20 @@ func TestUpdateDownload(t *testing.T) {
 }
 
 func TestGetDestinationFilename(t *testing.T) {
-	assert.Equal(t, filepath.Join("tmp", "foo", "linux-64", "repodata.json"), GetDestinationFilename("tmp", "foo", "linux-64"))
+	testCases := []struct {
+		suffix           string
+		expectedFilename string
+	}{
+		{"", "repodata.json"},
+		{".json", "repodata.json"},
+		{".json.zst", "repodata.json.zst"},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.suffix, func(t *testing.T) {
+			d := GetDestinationFilename("tmp", "foo", "linux-64", tc.suffix)
+			assert.Equal(t, filepath.Join("tmp", "foo", "linux-64", tc.expectedFilename), d)
+		})
+	}
 }
 
 func TestUpdateChannelRepodata(t *testing.T) {
